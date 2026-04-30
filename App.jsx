@@ -5,30 +5,18 @@ import {
   Smartphone, Monitor, Clapperboard, Settings2, Check
 } from 'lucide-react';
 
-// Firebase Config (Mock Ready as requested)
-const firebaseConfig = {
-  apiKey: "AIzaSyDbZ4T8264CDQ5LSoH_4L0luB5VKQbiqkU",
-  authDomain: "batrisi-latest-app.firebaseapp.com",
-  databaseURL: "https://batrisi-latest-app-default-rtdb.firebaseio.com",
-  projectId: "batrisi-latest-app",
-  storageBucket: "batrisi-latest-app.firebasestorage.app",
-  messagingSenderId: "175592360155",
-  appId: "1:175592360155:web:ba95f9aba4558fda9d64fe",
-  measurementId: "G-5N91PLG8LB"
-};
-
-const STYLES = ['Viral', 'Motivation', 'Romantic', 'Dark'];
-const FORMATS = [
+const STYLES =['Viral', 'Motivation', 'Romantic', 'Dark'];
+const FORMATS =[
   { id: '9:16', label: 'Reel', icon: <Smartphone size={16} /> },
   { id: '16:9', label: 'Short', icon: <Monitor size={16} /> }
 ];
 
 export default function App() {
   const [script, setScript] = useState('');
-  const [selectedStyle, setSelectedStyle] = useState('Viral');
+  const[selectedStyle, setSelectedStyle] = useState('Viral');
   const [format, setFormat] = useState('9:16');
   const [status, setStatus] = useState('idle'); // idle, generating, success
-  const [videoUrl, setVideoUrl] = useState(null);
+  const[videoUrl, setVideoUrl] = useState(null);
   
   const videoRef = useRef(null);
 
@@ -39,21 +27,11 @@ export default function App() {
     setVideoUrl(null);
 
     try {
-      // MOCK API CALL: POST /api/generate
-      /*
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ script, style: selectedStyle, format })
-      });
-      const data = await response.json();
-      */
-
-      // Simulated Network Delay
+      // Simulated Network Delay for UX
       await new Promise(resolve => setTimeout(resolve, 3500));
       
-      // Simulated Response
-      setVideoUrl('https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
+      // FIXED 404: Using a highly reliable W3Schools permanent test video
+      setVideoUrl('https://www.w3schools.com/html/mov_bbb.mp4');
       setStatus('success');
     } catch (error) {
       console.error('Error generating video:', error);
@@ -61,14 +39,26 @@ export default function App() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!videoUrl) return;
-    const a = document.createElement('a');
-    a.href = videoUrl;
-    a.download = `Keto_Reel_${Date.now()}.mp4`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    
+    try {
+      // Fetch the video to trigger a real download instead of opening a new tab
+      const response = await fetch(videoUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Keto_Reel_${Date.now()}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      // Fallback if CORS blocks the blob download
+      window.open(videoUrl, '_blank');
+    }
   };
 
   return (
@@ -87,17 +77,17 @@ export default function App() {
         <div className="text-sm font-medium text-gray-500 hidden sm:block">
           Your AI Motion Designer
         </div>
+        {/* FIXED: Updated to latest API version to prevent Avatar 404 */}
         <div className="w-8 h-8 rounded-full bg-gray-200 border border-gray-300 overflow-hidden">
-          <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=Felix`} alt="Avatar" />
+          <img src="https://api.dicebear.com/8.x/notionists/svg?seed=Keto" alt="Avatar" />
         </div>
       </header>
 
       {/* Main Workspace Layout */}
       <main className="flex-1 p-4 lg:p-8 flex flex-col lg:flex-row gap-6 max-w-[1600px] mx-auto w-full">
         
-        {/* Left Panel: Controls (Inputs) */}
+        {/* Left Panel: Controls */}
         <section className="w-full lg:w-[420px] flex flex-col gap-6 shrink-0">
-          
           <div className="bg-white p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white">
             <div className="mb-6">
               <h2 className="text-2xl font-semibold tracking-tight text-gray-900 mb-1">Create Reel</h2>
@@ -106,7 +96,7 @@ export default function App() {
 
             {/* Format Toggle */}
             <div className="mb-6">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block flex items-center gap-2">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <Settings2 size={14} /> Aspect Ratio
               </label>
               <div className="flex p-1 bg-gray-100/80 rounded-xl relative">
@@ -206,14 +196,12 @@ export default function App() {
                 </>
               )}
             </motion.button>
-
           </div>
         </section>
 
         {/* Right Panel: Preview/Output Canvas */}
         <section className="flex-1 bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white overflow-hidden relative flex flex-col">
           
-          {/* Canvas Header */}
           <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white/80 backdrop-blur z-10 absolute top-0 w-full">
             <span className="text-sm font-medium text-gray-600">Preview Canvas</span>
             <AnimatePresence>
@@ -234,7 +222,6 @@ export default function App() {
 
           {/* Canvas Area */}
           <div className="flex-1 bg-[#fafafa] bg-dot-pattern flex items-center justify-center p-8 pt-20">
-            
             <AnimatePresence mode="wait">
               {/* Empty State */}
               {status === 'idle' && !videoUrl && (
@@ -284,7 +271,6 @@ export default function App() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ type: "spring", bounce: 0.2 }}
-                  // Dynamic Aspect Ratio Styling
                   className={`relative bg-black rounded-2xl shadow-2xl overflow-hidden flex items-center justify-center ring-1 ring-black/5
                     ${format === '9:16' ? 'w-full max-w-[340px] aspect-[9/16]' : 'w-full max-w-[700px] aspect-video'}
                   `}
@@ -297,15 +283,11 @@ export default function App() {
                     loop
                     className="w-full h-full object-cover"
                   />
-                  {/* Subtle gradient overlay to make controls pop */}
-                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
                 </motion.div>
               )}
             </AnimatePresence>
-
           </div>
         </section>
-
       </main>
     </div>
   );
